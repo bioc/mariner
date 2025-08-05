@@ -1,3 +1,94 @@
+# mariner 1.2.1
+
+New features:
+
+Added `pileupBoundaries()` for visualizing pileup
+Hi-C contacts in regions around genomic loci/boundary
+elements.
+
+# mariner 1.2.0
+
+Breaking changes:
+
+* Function renaming:
+    * `subsetBySource()` -> `sets()`
+    * `getPairClusters()` -> `clusters()`
+    * `aggPairMcols()` -> `aggMetadata()`
+    * `binPairs()` -> `assignToBins()`
+
+* `sets()` function now returns all combinations
+of sets from a `MergedGInteractions` object.
+
+# mariner 1.1.3
+
+New features:
+
+Wrapper functions for performing pileup
+analysis on pixels or domains.
+
+* `pileupPixels()` for extracting and aggregating
+Hi-C counts in square regions around pixels of
+interest (aggregate peak analysis).
+
+* `pileupDomains()` for extracting, resizing, and
+aggregating Hi-C counts in domain regions of
+interest (aggregate domain analysis).
+
+Changes:
+
+* Improve documentation for `removeShortPairs()`
+to make it more clear that it should be run after
+any function that resizes interactions.
+
+* Add `verbose` option to `regularize()` to update
+users on regularization of jagged arrays.
+
+# mariner 1.1.2
+
+Bug fixes:
+
+* Fix id mapping in `aggPairMcols()`
+
+# mariner 1.1.1
+
+Bug fixes:
+
+* Fix in `pullHic` functions:
+After running `.prepareInputs()` which involves snapping ranges
+to bins, the adjusted ranges were not being used to calculate the
+expected matrix dimensions. This can sometimes cause a missmatch
+between the data used for enumerating bins, and the data that is
+extracted from the Hi-C file. Fixed by using the adjusted
+interactions to set the matrix dimensions.
+
+# mariner 1.1.0
+
+New features:
+
+* `JaggedArray` and `InteractionJaggedArray` classes
+for irregular matrices.
+
+* Functions for generating random `GRanges` and
+`GInteractions` objects.
+
+* `regularize` method for converting irregular (i.e. jagged)
+to regular arrays.
+
+* New `calcLoopEnrichment` method  for `InteractionArray`
+objects.
+
+* `defaultBuffer()` function for setting the buffer argument
+from an `InteractionArray`.
+
+Bug Fixes:
+
+* Fix bug in `removeShortPairs` where padding wasn't
+working as intended.
+
+* `FUN` argument of `calcLoopEnrichment` now accepts
+environmental variables and uses flexible argument names
+for `fg` and `bg`.
+
 # mariner 0.99.0
 
 Bug fixes and improvements:
@@ -8,7 +99,7 @@ S4 method dispatch on all arguments to just `x` and
 
 * Fix bug in `mergePairs()` where all pairs are altered
 during mean of mode transformation. Now original pairs
-are preserved when accessed with `getPairClusters()`.
+are preserved when accessed with `clusters()`.
 
 * Set replace method for `counts<-` accessor for
 `InteractionMatrix` objects. Helpful for converting

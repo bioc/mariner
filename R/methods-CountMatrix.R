@@ -35,7 +35,7 @@
 #'     setNames("WT") |>
 #'     read.table(header=TRUE) |>
 #'     as_ginteractions(keep.extra.columns=FALSE) |>
-#'     binPairs(binSize=100e3)
+#'     assignToBins(binSize=100e3)
 #'
 #' ## Removes the "chr" prefix for compatibility
 #' ## with the preprocessed hic files
@@ -64,6 +64,11 @@ setMethod("show", "CountMatrix", function(object) {
     object <- object@object
 
     ## Row/colnames
+    if (!all(c("rownames", "colnames") %in%
+             names(assays(object)))) {
+        abort(c("Dimnames not available for this object.",
+                "*"="Try again with `showDimnames=FALSE`."))
+    }
     rows <- assay(object, 'rownames')
     cols <- assay(object, 'colnames')
 

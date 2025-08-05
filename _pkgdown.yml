@@ -18,9 +18,10 @@ reference:
       - as_ginteractions
       - shiftRanges
       - binRanges
-      - binPairs
+      - assignToBins
       - snapToBins
       - seqnames1
+      - makeRandomGRanges
   - title: "Clustering & Merging Interactions"
     desc: >
       Group nearby interactions and select one as
@@ -28,10 +29,10 @@ reference:
     contents:
       - mergePairs
       - MergedGInteractions
-      - aggPairMcols
-      - getPairClusters
+      - aggMetadata
+      - clusters
       - sources
-      - subsetBySource
+      - sets
   - title: "Extracting & Aggregating Interactions"
     desc: >
       Pull Hi-C pixels or matrices, then aggregate by
@@ -45,9 +46,22 @@ reference:
       - InteractionArray
       - counts,InteractionArray-method
       - path,InteractionMatrix-method
+      - InteractionJaggedArray-class
+      - JaggedArray-class
+      - findOverlaps
+      - regularize
       - aggHicMatrices
       - hdf5BlockApply
       - plotMatrix
+  - title: "Pileup analysis"
+    desc: >
+      Wraps several mariner functions to facilitate
+      pileup analysis of Hi-C pixels, domains or
+      boundaries.
+    contents:
+      - pileupPixels
+      - pileupDomains
+      - pileupBoundaries
   - title: "Calculating Loop Enrichment"
     desc: >
       Determine loop enrichment to local background with
@@ -61,6 +75,7 @@ reference:
       - MatrixSelection
       - selectRadius
       - selectionMethod
+      - defaultBuffer
   - title: "Miscellaneous"
     contents:
       - changePixelRes

@@ -21,12 +21,14 @@
             ## Check upper triangular (lower left corner)
             (seqnames1 == seqnames2 &
                  start1 < start2 &
-                 start2 - end1 + padding >= 0) |
+                 start2 > end1 & # ensure not overlapping
+                 start2 - (end1 + padding) >= 0) |
 
             ## Check lower triangular (upper right corner)
             (seqnames1 == seqnames2 &
                  start1 > start2 &
-                 start1 - end2 + padding >= 0),
+                 start1 > end2 & # ensure not overlapping
+                 start1 - (end2 + padding) >= 0),
         which=TRUE
     ]
 
@@ -36,6 +38,12 @@
 #' Remove interactions that would cross
 #' the Hi-C diagonal or a specified
 #' distance from the diagonal.
+#'
+#' Removes short interactions with some
+#' padding from the diagonal. If you are
+#' resizing the regions with a function
+#' like `pixelsToMatrices()`, make sure
+#' this function is run afterwards.
 #'
 #' Note this is only applies to
 #' intrachromosomal pairs, as pair distance
