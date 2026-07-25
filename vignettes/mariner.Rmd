@@ -342,70 +342,6 @@ and `calcLoopEnrichment()` -- accept cooler files too.
 The section "Using .cool and .mcool files" below covers
 the differences that do apply.
 
-### Pulling pixels
-
-Pixels are defined as paired-ranges with widths equal to
-their `binSize`. When all interactions are pixels,
-`pullHicPixels()` returns an `InteractionMatrix` object
-containing a matrix of contact frequency for each
-interaction (row) and `.hic` file (column).
-
-As described in previous sections, BEDPE files containing
-the locations of chromatin loops can be read in and merged.
-
-```{r examplePullPixels, message=FALSE}
-library(mariner)
-library(marinerData)
-
-## BEDPE-formatted files
-bedpeFiles <- c(
-    marinerData::FS_5kbLoops.txt(),
-    marinerData::WT_5kbLoops.txt()
-)
-names(bedpeFiles) <- c("FS", "WT")
-
-## Read as list of GInteractions
-giList <-
-    lapply(bedpeFiles, read.table, header=TRUE) |>
-    lapply(as_ginteractions)
-
-## Merge
-mgi <- mergePairs(x=giList, radius=10e3, column="APScoreAvg")
-
-summary(mgi)
-```
-
-The `marinerData` `ExperimentHub` package includes some
-small `.hic` files that can be downloaded for testing.
-
-```{r loadHicFiles, message=FALSE}
-library(marinerData)
-hicFiles <- c(
-    LEUK_HEK_PJA27_inter_30.hic(),
-    LEUK_HEK_PJA30_inter_30.hic()
-)
-names(hicFiles) <- c("FS", "WT")
-hicFiles
-```
-
-The `strawr` package includes functions for visualizing
-the available chromosomes, resolutions (`binSizes`), and
-normalizations in the `.hic` files.
-
-```{r strawr}
-library(strawr)
-
-## Normalizations
-lapply(hicFiles, readHicNormTypes)
-
-## Resolutions
-lapply(hicFiles, readHicBpResolutions)
-
-## Chromosomes
-lapply(hicFiles, readHicChroms) |>
-    lapply(head)
-```
-
 ### Using .cool and .mcool files
 
 `pullHicPixels()` and `pullHicMatrices()` also read
@@ -480,6 +416,70 @@ sometimes carry the original juicer vectors along as
 extra bin columns; when a normalization other than
 `"BALANCE"` is requested, `mariner` treats it as a juicer
 vector and divides, matching `strawr::straw()`.
+
+### Pulling pixels
+
+Pixels are defined as paired-ranges with widths equal to
+their `binSize`. When all interactions are pixels,
+`pullHicPixels()` returns an `InteractionMatrix` object
+containing a matrix of contact frequency for each
+interaction (row) and `.hic` file (column).
+
+As described in previous sections, BEDPE files containing
+the locations of chromatin loops can be read in and merged.
+
+```{r examplePullPixels, message=FALSE}
+library(mariner)
+library(marinerData)
+
+## BEDPE-formatted files
+bedpeFiles <- c(
+    marinerData::FS_5kbLoops.txt(),
+    marinerData::WT_5kbLoops.txt()
+)
+names(bedpeFiles) <- c("FS", "WT")
+
+## Read as list of GInteractions
+giList <-
+    lapply(bedpeFiles, read.table, header=TRUE) |>
+    lapply(as_ginteractions)
+
+## Merge
+mgi <- mergePairs(x=giList, radius=10e3, column="APScoreAvg")
+
+summary(mgi)
+```
+
+The `marinerData` `ExperimentHub` package includes some
+small `.hic` files that can be downloaded for testing.
+
+```{r loadHicFiles, message=FALSE}
+library(marinerData)
+hicFiles <- c(
+    LEUK_HEK_PJA27_inter_30.hic(),
+    LEUK_HEK_PJA30_inter_30.hic()
+)
+names(hicFiles) <- c("FS", "WT")
+hicFiles
+```
+
+The `strawr` package includes functions for visualizing
+the available chromosomes, resolutions (`binSizes`), and
+normalizations in the `.hic` files.
+
+```{r strawr}
+library(strawr)
+
+## Normalizations
+lapply(hicFiles, readHicNormTypes)
+
+## Resolutions
+lapply(hicFiles, readHicBpResolutions)
+
+## Chromosomes
+lapply(hicFiles, readHicChroms) |>
+    lapply(head)
+```
 
 Since the chromosomes in the `.hic` files have been
 processed without the "chr" prefix, it is important
