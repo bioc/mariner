@@ -61,7 +61,7 @@
 #' and KR is Knight-Ruiz normalization.
 #' 
 #' @param fname path to .cool or .mcool file
-#' @param resolutions optional, specify which resolution(s) to read 
+#' @param resolution optional, specify which resolution(s) to read
 #' normalization types from. Default is all resolutions in `fname`
 #' 
 #' @importFrom rlang arg_match
@@ -284,28 +284,28 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
   ## check that norm and binsize are in fname
   resolutions <- readCoolBpResolutions(fname)
   if(!binsize %in% resolutions){
-    abort(glue("binsize={binsize} is not valid."),
-          "i"= glue("Use `readCoolBpResolutions()` to \\
-                          see allowed values."))
+    abort(c(glue("binsize={binsize} is not valid."),
+            "i" = glue("Use `readCoolBpResolutions()` to \\
+                        see allowed values.")))
   }
   
   normalizations <- readCoolNormTypes(fname, binsize)
   if(!norm %in% normalizations){
-    abort(glue("norm={norm} is not valid."),
-          "i"= glue("Use `readCoolNormTypes()` to \\
-                          see allowed values."))
+    abort(c(glue("norm={norm} is not valid."),
+            "i" = glue("Use `readCoolNormTypes()` to \\
+                        see allowed values.")))
   }
   
   ## check that chr1loc and chr2loc are in the correct format
   if(!(grepl("^\\w+\\:[0-9e]+\\:[0-9e]+$",chr1loc))) {
-    abort(glue("chr1loc={chr1loc} is not valid."),
-          i = "Chromosome locations must be in the format chr:start:end")
+    abort(c(glue("chr1loc={chr1loc} is not valid."),
+            "i" = "Chromosome locations must be in the format chr:start:end"))
   }
-  
+
   if(grepl(":",chr2loc)){
     if(!(grepl("^\\w+\\:[0-9e]+\\:[0-9e]+$",chr2loc))) {
-      abort(glue("chr1loc={chr1loc} is not valid."),
-            i = "Chromosome locations must be in the format chr:start:end")
+      abort(c(glue("chr2loc={chr2loc} is not valid."),
+              "i" = "Chromosome locations must be in the format chr:start:end"))
     }
   }
   

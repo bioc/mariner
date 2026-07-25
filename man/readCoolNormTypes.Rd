@@ -10,7 +10,7 @@ readCoolNormTypes(fname, resolution)
 \arguments{
 \item{fname}{path to .cool or .mcool file}
 
-\item{resolutions}{optional, specify which resolution(s) to read 
+\item{resolution}{optional, specify which resolution(s) to read
 normalization types from. Default is all resolutions in `fname`}
 }
 \value{

@@ -488,7 +488,7 @@ test_that("pullHicPixels pulls correct counts from hic files", {
 
     ## Test
     expect_identical(
-        as.matrix(counts(imat_cool)),
+        as.matrix(counts(imat_mixedCool)),
         as.matrix(data.frame(Mut, WT))
     )
 })
