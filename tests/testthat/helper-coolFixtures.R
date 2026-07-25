@@ -1,12 +1,17 @@
 ## Synthetic .cool/.mcool fixtures.
 ##
-## marinerData hosts .cool/.mcool example files on Zenodo, but those records
-## were never published to Bioconductor's ExperimentHub, so the accessors are
-## not available here. Building small files locally also keeps `R CMD check`
-## free of network access, and -- more usefully -- lets these tests assert on
-## counts we chose ourselves rather than only checking that cooler output
-## agrees with .hic output. Two real bugs in `coolStraw()` survived precisely
-## because the original tests only did the latter.
+## marinerData's .cool/.mcool example files are published on ExperimentHub
+## (EH9511-EH9514, hosted at doi:10.5281/zenodo.10906240), but the released
+## marinerData package builds its accessors from inst/extdata/metadata.csv,
+## and those rows were never pushed to Bioconductor -- so the accessor
+## functions do not exist in any installable version.
+##
+## Small local files are the better choice for tests regardless. They keep
+## `R CMD check` off the network (the real .mcool is 55 MB) and, more usefully,
+## let these tests assert on counts we chose ourselves rather than only
+## checking that cooler output agrees with .hic output. Two real bugs in
+## `coolStraw()` survived precisely because the original tests only did the
+## latter.
 ##
 ## Layout follows the cooler spec: chroms/, bins/, pixels/, indexes/, with
 ## /resolutions/<binSize>/ nesting for .mcool.
