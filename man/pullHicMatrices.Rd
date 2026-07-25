@@ -3,7 +3,7 @@
 \name{pullHicMatrices}
 \alias{pullHicMatrices}
 \alias{pullHicMatrices,GInteractions,character,numeric-method}
-\title{Pull submatrices from `.hic` files}
+\title{Pull submatrices from Hi-C files}
 \usage{
 pullHicMatrices(
   x,
@@ -38,7 +38,8 @@ pullHicMatrices(
 \item{x}{GInteractions object containing interactions
 to extract from Hi-C files.}
 
-\item{files}{Character file paths to `.hic` files.}
+\item{files}{Character file paths to `.hic`, `.cool`, or
+`.mcool` files. All files must be the same format.}
 
 \item{binSize}{Integer (numeric) describing the
 resolution (range widths) of the paired data.}
@@ -114,6 +115,13 @@ are the same for each interaction, an
 InteractionArray is returned. However, if the
 anchor widths differ in `x`, an
 InteractionJaggedArray is returned instead.
+}
+\details{
+Accepts `.hic` files as well as `.cool`/`.mcool` (cooler)
+files. The format is detected from the file contents, so
+no additional argument is required. Two restrictions apply
+to cooler files: only `matrix="observed"` is supported,
+and `.hic` and cooler files cannot be mixed in one call.
 }
 \examples{
 ## Load marinerData
