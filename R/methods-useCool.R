@@ -275,8 +275,32 @@ readCoolBpResolutions <- function(fname){
 #' @importFrom glue glue
 #' @importFrom rhdf5 h5ls h5read
 #'
+#' Map a snapped genomic coordinate to a global bin id
+#'
+#' Query coordinates are snapped down to a bin boundary before lookup, but a
+#' query whose end coincides with (or runs past) the end of a chromosome has no
+#' bin *starting* at that coordinate -- the last bin starts one binsize earlier.
+#' Matching on equality alone returns `integer(0)` there and the downstream
+#' range construction fails with "argument of length 0". Clamp to the final bin
+#' of the chromosome instead, which is the bin such a query refers to.
+#'
+#' @param binStarts bin start coordinates for the chromosome, in order
+#' @param pos snapped genomic coordinate
+#' @param chromOffset global bin offset of the chromosome
+#'
+#' @returns global bin id
+#'
+#' @noRd
+.coolBinId <- function(binStarts, pos, chromOffset){
+  idx <- which(binStarts == pos)
+  if(length(idx) == 0L){
+    idx <- length(binStarts)
+  }
+  idx + chromOffset - 1
+}
+
 #' @returns data.frame of a sparse matrix of data from cool file. x,y,counts
-#' 
+#'
 #' @export
 coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
   ## parameter checking---------------------------------------------------------
@@ -374,9 +398,9 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
     chr1_starts <- h5read(fname, name=paste0(datasetPath,"/bins/start"),
                           index = list((chrom_offsets[chr1idx]+1):
                                          chrom_offsets[chr1idx+1]))
-    start1bin <- which(chr1_starts == start1) + chrom_offsets[chr1idx] - 1
+    start1bin <- .coolBinId(chr1_starts, start1, chrom_offsets[chr1idx])
     # get end1 bin (i.e. bin where end1 starts)
-    end1bin <- which(chr1_starts == end1) + chrom_offsets[chr1idx] - 1
+    end1bin <- .coolBinId(chr1_starts, end1, chrom_offsets[chr1idx])
     
     
     ## Find bin id for chr2 start and end
@@ -385,9 +409,9 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
     chr2_starts <- h5read(fname, name=paste0(datasetPath,"/bins/start"),
                           index = list((chrom_offsets[chr2idx]+1):
                                          chrom_offsets[chr2idx+1]))
-    start2bin <- which(chr2_starts == start2) + chrom_offsets[chr2idx] - 1
+    start2bin <- .coolBinId(chr2_starts, start2, chrom_offsets[chr2idx])
     # get end2 bin
-    end2bin <- which(chr2_starts == end2) + chrom_offsets[chr2idx] - 1
+    end2bin <- .coolBinId(chr2_starts, end2, chrom_offsets[chr2idx])
     
     ## Extract counts and match locations---------------------------------------
     
@@ -396,20 +420,26 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
     
     ## Pull all bin2 ids for interactions with all bin1s between start1 and end1
     ## Read 5 million indices at a time for more efficient calling
-    allBin1s <- (bin_offsets[start1bin+1]+1):(bin_offsets[end1bin+1]+1)
-    
+    ##
+    ## `bin_offsets` is 0-based with one entry per bin plus a terminator, so the
+    ## pixels belonging to bins start1bin..end1bin run from
+    ## bin_offsets[start1bin+1]+1 through bin_offsets[end1bin+2] in 1-based
+    ## terms. Ending at bin_offsets[end1bin+1]+1 instead stops at the *first*
+    ## pixel of end1bin and drops the rest of that row.
+    firstPixel <- bin_offsets[start1bin+1]+1
+    lastPixel <- bin_offsets[end1bin+2]
+    allBin1s <- firstPixel:lastPixel
+
     binChunkSize <- 5e6
-    
+
     if(length(allBin1s) > binChunkSize){
-      binChunks <- seq(bin_offsets[start1bin+1]+1,
-                       bin_offsets[end1bin+1]+1,
-                       binChunkSize)
-      
+      binChunks <- seq(firstPixel, lastPixel, binChunkSize)
+
       count_idx <- numeric(0)
       for(binChunk in binChunks){
         binChunkEnd <- binChunk + binChunkSize - 1
-        if(binChunkEnd > bin_offsets[end1bin+1]+1){
-          binChunkEnd <- bin_offsets[end1bin+1]+1
+        if(binChunkEnd > lastPixel){
+          binChunkEnd <- lastPixel
         }
         if(binChunkEnd > binChunk){
         bin2s <- h5read(fname, name=paste0(datasetPath,"/pixels/bin2_id"),
@@ -427,8 +457,7 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
                       index = list(allBin1s)) 
       
       ## Find indexes for interactions with all bin2s between start2 and end2
-      count_idx <- which(bin2s %in% start2bin:end2bin) + 
-        bin_offsets[start1bin+1]
+      count_idx <- which(bin2s %in% start2bin:end2bin) + firstPixel - 1
     }
     
     ## Pull out bin1 ids, bin2 ids, and counts for all interactions in slice
