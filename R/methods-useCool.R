@@ -7,9 +7,10 @@
 #' @importFrom rlang abort
 #' @importFrom rhdf5 H5Fis_hdf5 h5ls
 #' 
-#' @returns character string of file ending if file is `.cool` or `.mcool`, 
+#' @returns character string of file ending if file is `.cool` or `.mcool`,
 #' aborts with error message if not
-#' 
+#'
+#' @noRd
 .checkIfCool <- function(fname){
   
   ## Check if file is hdf5
