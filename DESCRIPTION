@@ -102,6 +102,7 @@ Collate:
     'methods-removeShortPairs.R'
     'methods-shiftRanges.R'
     'methods-snapToBins.R'
+    'methods-useCool.R'
     'zzz.R'
 URL: 
     https://ericscottdavis.com/mariner/,

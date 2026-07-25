@@ -27,9 +27,7 @@
   
   if(nrow(lvl1contents) == 1){
     ## get deeper contents
-    lvl2contents <- h5ls(fname, recursive = 3) |>
-      pull(name) |>
-      unique()
+    lvl2contents <- unique(h5ls(fname, recursive = 3)$name)
     
     ## check that the top level is resolution 
     ## and file contains expected datasets
@@ -276,8 +274,7 @@ readCoolBpResolutions <- function(fname){
 #' @importFrom rlang abort
 #' @importFrom glue glue
 #' @importFrom rhdf5 h5ls h5read
-#' @importFrom stringr str_extract
-#' 
+#'
 #' @returns data.frame of a sparse matrix of data from cool file. x,y,counts
 #' 
 #' @export
@@ -315,12 +312,12 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
   ## parse and adjust chromosome locations--------------------------------------
   
     ## parse chromosome locations
-    chr1loc <- stringr::str_split(chr1loc,":")[[1]]
+    chr1loc <- strsplit(chr1loc, ":", fixed = TRUE)[[1]]
     chr1 <- chr1loc[1]
     start1 <- as.numeric(chr1loc[2])
     end1 <- as.numeric(chr1loc[3])
     
-    chr2loc <- stringr::str_split(chr2loc,":")[[1]]
+    chr2loc <- strsplit(chr2loc, ":", fixed = TRUE)[[1]]
     chr2 <- chr2loc[1]
     start2 <- as.numeric(chr2loc[2])
     end2 <- as.numeric(chr2loc[3])
