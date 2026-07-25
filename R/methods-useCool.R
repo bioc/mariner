@@ -256,25 +256,6 @@ readCoolBpResolutions <- function(fname){
 }
 
 
-#' Equivalent to `strawr::straw` for `.cool` and `.mcool` files
-#' 
-#' @description
-#' Reads the .hic file, finds the appropriate matrix and slice of data, 
-#' and outputs as data.frame in sparse upper triangular format. 
-#' Currently only supporting "observed" matrixes.
-#' 
-#' @param norm Normalization to apply. Must be one of the normalizations in the
-#' given file. Use `readCoolNormTypes(fname)` for accepted normalization types
-#' @param fname path to .cool or .mcool file
-#' @param chr1loc first chromosome location, in the format "chr1:start1:end1"
-#' @param chr2loc second chromosome location, in the format "chr2:start2:end2"
-#' @param binsize The bin size in basepairs. Must be one of the resolutions in
-#' the given file. Use `readCoolBpResolutions(fname)` for accepted binsizes
-#'
-#' @importFrom rlang abort
-#' @importFrom glue glue
-#' @importFrom rhdf5 h5ls h5read
-#'
 #' Map a snapped genomic coordinate to a global bin id
 #'
 #' Query coordinates are snapped down to a bin boundary before lookup, but a
@@ -299,6 +280,34 @@ readCoolBpResolutions <- function(fname){
   idx + chromOffset - 1
 }
 
+#' Equivalent to `strawr::straw` for `.cool` and `.mcool` files
+#'
+#' @description
+#' Reads the cooler file, finds the appropriate matrix and slice of data,
+#' and outputs as data.frame in sparse upper triangular format.
+#' Currently only supporting "observed" matrixes.
+#'
+#' @details
+#' Normalizations are applied following the convention of the format they
+#' come from. `"BALANCE"` reads cooler's own `weight` column, which holds
+#' multiplicative biases, so counts are multiplied by the weight of each
+#' bin. Any other normalization is read from a like-named bin column and
+#' divided out instead, matching the divisive convention of juicer vectors
+#' carried into cooler files by converters such as hic2cool, and therefore
+#' matching `strawr::straw()`.
+#'
+#' @param norm Normalization to apply. Must be one of the normalizations in the
+#' given file. Use `readCoolNormTypes(fname)` for accepted normalization types
+#' @param fname path to .cool or .mcool file
+#' @param chr1loc first chromosome location, in the format "chr1:start1:end1"
+#' @param chr2loc second chromosome location, in the format "chr2:start2:end2"
+#' @param binsize The bin size in basepairs. Must be one of the resolutions in
+#' the given file. Use `readCoolBpResolutions(fname)` for accepted binsizes
+#'
+#' @importFrom rlang abort
+#' @importFrom glue glue
+#' @importFrom rhdf5 h5ls h5read
+#'
 #' @returns data.frame of a sparse matrix of data from cool file. x,y,counts
 #'
 #' @export
@@ -472,13 +481,20 @@ coolStraw <- function(norm, fname, chr1loc, chr2loc, binsize){
       #defaults to integer, needs to be numeric to convert to NA correctly
       as.numeric() 
     
-    ## Multiply by normalization factors, if applicable
+    ## Apply normalization factors, if applicable.
+    ##
+    ## The two branches use opposite conventions on purpose. cooler's own
+    ## `weight` column holds multiplicative biases -- its docs define the
+    ## balanced value as A_ij * w_i * w_j -- so BALANCE multiplies. Other bin
+    ## columns are typically juicer normalization vectors carried over by
+    ## converters such as hic2cool, and juicer's convention is divisive, so
+    ## those keep dividing to stay consistent with `strawr::straw()`.
     if(norm == "BALANCE"){
       bin1norm <- h5read(fname, name=paste0(datasetPath,"/bins/weight"),
                          list(as.numeric(bin1ids+1)))
       bin2norm <- h5read(fname, name=paste0(datasetPath,"/bins/weight"),
                          list(as.numeric(bin2ids+1)))
-      counts <- counts / (bin1norm * bin2norm)
+      counts <- counts * (bin1norm * bin2norm)
     } else if(norm != "NONE"){
       bin1norm <- h5read(fname, name=paste0(datasetPath,"/bins/",norm),
                          list(as.numeric(bin1ids+1)))

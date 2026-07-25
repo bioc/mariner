@@ -120,9 +120,11 @@ test_that("coolStraw applies balancing weights", {
 
     raw <- expectedCoolStraw(binSize, "1", 200, 500, "1", 200, 500)
     weights <- .coolWeights(nrow(.coolBins(binSize)))
+    ## cooler defines the balanced value as A_ij * w_i * w_j, so weights are
+    ## multiplied rather than divided out.
     ## bins 2..5 cover 200-500 on chromosome 1
     ids <- cbind(raw$x %/% binSize, raw$y %/% binSize)
-    want <- raw$counts / (weights[ids[, 1] + 1L] * weights[ids[, 2] + 1L])
+    want <- raw$counts * (weights[ids[, 1] + 1L] * weights[ids[, 2] + 1L])
 
     expect_equal(got$counts, want)
 
