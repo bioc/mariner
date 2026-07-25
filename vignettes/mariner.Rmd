@@ -339,8 +339,8 @@ automatically, so the same code works with either, and
 functions built on top of these -- such as
 `pileupPixels()`, `pileupDomains()`, `pileupBoundaries()`,
 and `calcLoopEnrichment()` -- accept cooler files too.
-See [Using .cool and .mcool files] for the differences
-that do apply.
+The section "Using .cool and .mcool files" below covers
+the differences that do apply.
 
 ### Pulling pixels
 
