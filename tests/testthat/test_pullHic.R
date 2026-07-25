@@ -17,20 +17,6 @@ hicFiles <- c(
 )
 names(hicFiles) <- c("FS", "WT")
 
-## Read .mcool file paths
-mcoolFiles <- c(
-  LEUK_HEK_PJA27_inter_30.mcool(),
-  LEUK_HEK_PJA30_inter_30.mcool() 
-)
-names(mcoolFiles) <- c("FS", "WT")
-
-## Read .cool file paths
-coolFiles <- c(
-  LEUK_HEK_PJA27_inter_30_2500Kb.cool(),
-  LEUK_HEK_PJA30_inter_30_2500Kb.cool() 
-)
-names(coolFiles) <- c("FS", "WT")
-
 ## Reference BEDPE files (loops called with SIP)
 bedpeFiles <- c(
     FS_5kbLoops.txt(),
@@ -160,31 +146,6 @@ test_that("Check chromosomes in .hic file", {
         expect_null()
 })
 
-test_that("Check chromosomes in .cool and .mcool files", {
-  
-  ## Assign to x (to avoid modifying in place)
-  x <- bgi
-  
-  ## Set binSize
-  binSize <- 10e3
-  
-  ## Seqnames mismatch throws error
-  .checkCoolChroms(x, coolFiles[1]) |>
-    expect_error("There's.*craziness.*")
-  
-  .checkCoolChroms(x, mcoolFiles[1], binSize) |>
-    expect_error("There's.*craziness.*")
-  
-  ## Corrected seqnames don't throw error
-  seqlevelsStyle(x) <- "ENSEMBL"
-  .checkCoolChroms(x, coolFiles[1]) |>
-    expect_null()
-  
-  .checkCoolChroms(x, mcoolFiles[1], binSize) |>
-    expect_null()
-  
-})
-
 test_that("Blocking works for individual ranges", {
     .blockRanges(
         start = c(0, 40, 45, 50, 110, 120, 0),
@@ -307,69 +268,6 @@ test_that("Straw args are checked correctly", {
         expect_error()
 })
 
-test_that("Cool args are checked correctly", {
-
-    ## check that it works
-    .checkCoolArgs(
-        files = mcoolFiles,
-        half = "both",
-        norm = "KR",
-        binSize = 10e03,
-        matrix = "observed"
-    ) |>
-        expect_null()
-
-    ## error if matrix is not "observed"
-    .checkCoolArgs(
-        files = mcoolFiles,
-        half = "both",
-        norm = "KR",
-        binSize = 10e03,
-        matrix = "oe"
-    ) |>
-        expect_error("matrix")
-
-    ## error if `half` is invalid
-    .checkCoolArgs(
-        files = mcoolFiles,
-        half = "neither",
-        norm = "KR",
-        binSize = 10e03,
-        matrix = "observed"
-    ) |>
-        expect_error("half")
-
-    ## error if `norm` is not in files
-    .checkCoolArgs(
-        files = mcoolFiles,
-        half = "both",
-        norm = "BALANCE",
-        binSize = 10e03,
-        matrix = "observed"
-    ) |>
-        expect_error("norm")
-
-    ## error if `norm` is "none" with helpful message
-    .checkCoolArgs(
-        files = mcoolFiles,
-        half = "both",
-        norm = "none",
-        binSize = 10e03,
-        matrix = "observed"
-    ) |>
-        expect_error("Did you mean")
-
-    ## error if `binsize` is invalid
-    .checkCoolArgs(
-        files = mcoolFiles,
-        half = "both",
-        norm = "KR",
-        binSize = 101e03,
-        matrix = "observed"
-    ) |>
-        expect_error("binSize")
-})
-
 test_that("pullHicPixels pulls correct counts from hic files", {
     ## Assign to x (to avoid modifying in place)
     x <- assignToBins(bgi[1:10], 2.5e06)
@@ -426,71 +324,6 @@ test_that("pullHicPixels pulls correct counts from hic files", {
         as.matrix(data.frame(Mut, WT))
     )
 
-    ## Test mcool files
-    ## Give names to mcoolFiles
-    namedMcoolFiles <- mcoolFiles
-    names(namedMcoolFiles) <- c("Mut", "WT")
-
-    ## Pull pixels
-    imat_mcool <-
-        pullHicPixels(
-            x = x,
-            binSize = 2.5e06,
-            files = namedMcoolFiles,
-            matrix = "observed",
-            norm = "NONE",
-            half = "both"
-        )
-
-    ## Test
-    expect_identical(
-        as.matrix(counts(imat_mcool)),
-        as.matrix(data.frame(Mut, WT))
-    )
-
-    ## Test cool files
-    ## Give names to coolFiles
-    namedCoolFiles <- coolFiles
-    names(namedCoolFiles) <- c("Mut", "WT")
-
-    ## Pull pixels
-    imat_cool <-
-        pullHicPixels(
-            x = x,
-            binSize = 2.5e06,
-            files = namedCoolFiles,
-            matrix = "observed",
-            norm = "NONE",
-            half = "both"
-        )
-
-    ## Test
-    expect_identical(
-        as.matrix(counts(imat_cool)),
-        as.matrix(data.frame(Mut, WT))
-    )
-
-    ## Test mix of cool and mcool files
-    ## Give names to coolFiles
-    namedMixedCoolFiles <- c(coolFiles[1], mcoolFiles[2])
-    names(namedMixedCoolFiles) <- c("Mut", "WT")
-
-    ## Pull pixels
-    imat_mixedCool <-
-        pullHicPixels(
-            x = x,
-            binSize = 2.5e06,
-            files = namedMixedCoolFiles,
-            matrix = "observed",
-            norm = "NONE",
-            half = "both"
-        )
-
-    ## Test
-    expect_identical(
-        as.matrix(counts(imat_mixedCool)),
-        as.matrix(data.frame(Mut, WT))
-    )
 })
 
 
@@ -517,10 +350,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "upper")
@@ -536,10 +365,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="upper")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="lower"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "lower")
@@ -555,10 +380,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="lower")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
 
     ## Intrachromosomal
@@ -579,10 +400,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "upper")
@@ -598,10 +415,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     exp <- array(data = NA_real_, dim = c(2, 2, 2, 1))
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="lower")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## Intrachromosomal
     ## Off-diagonal
@@ -621,10 +434,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "upper")
@@ -659,10 +468,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 2.5e06, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 2.5e06, half = "upper")
@@ -691,10 +496,6 @@ test_that("pullHicMatrices for square, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 2.5e06, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 2.5e06, half = "upper")
@@ -727,10 +528,6 @@ test_that("pullHicMatrices for rectangular, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "upper")
@@ -781,10 +578,6 @@ test_that("pullHicMatrices for rectangular, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "upper")
@@ -828,10 +621,6 @@ test_that("pullHicMatrices for rectangular, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 100e03, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 100e03, half = "upper")
@@ -874,10 +663,6 @@ test_that("pullHicMatrices for rectangular, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 2.5e06, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 2.5e06, half = "upper")
@@ -911,10 +696,6 @@ test_that("pullHicMatrices for rectangular, regular arrays", {
     )
     expect_identical(interactions(res), gi)
     expect_identical(unname(as.array(counts(res))), exp)
-    
-    resCool <- pullHicMatrices(gi, mcoolFiles[1], 2.5e06, half="both")
-    expect_identical(interactions(resCool), gi)
-    expect_identical(unname(as.array(counts(resCool))), exp)
 
     ## half="upper"
     res <- pullHicMatrices(gi, hicFiles[1], 2.5e06, half = "upper")
@@ -945,12 +726,4 @@ test_that("Pull irregular arrays", {
     expect_identical(counts(iset2)[, , 1, 1] |> as.matrix(), exp)
     expect_identical(as.list(counts(iset2))[[1]][[1]], exp)
 
-    ## Are counts pulled & accessed correctly for mcool files?
-    iset <- pullHicMatrices(gi, mcoolFiles, 100e03, half = "both")
-
-    iset1 <- pullHicMatrices(gi[1], mcoolFiles[1], 50e03, half = "both")
-    iset2 <- pullHicMatrices(gi, mcoolFiles[1], 50e03, half = "both")
-    exp <- counts(iset1) |> as.matrix()
-    expect_identical(counts(iset2)[, , 1, 1] |> as.matrix(), exp)
-    expect_identical(as.list(counts(iset2))[[1]][[1]], exp)
 })
